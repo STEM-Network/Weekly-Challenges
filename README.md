@@ -1,4 +1,4 @@
-# NCEES Daily Challenges
+# NCEES Weekly Challenges
 
 This repository will be used as a submission platform for the NCEES community.
 
