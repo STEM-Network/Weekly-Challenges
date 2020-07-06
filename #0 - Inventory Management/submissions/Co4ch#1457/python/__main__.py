@@ -43,6 +43,7 @@ def scanned_barcode(barcode: str, stack: List[List[Tray]], depth: int) -> List[L
     stack[depth].add(t)
     return stack
 
+
 def next_stack(zone: List[List[List[Tray]]],
                 stack: List[List[Tray]]) -> Union[List[List[Tray]], None]:
     """Looking at a current stack, provide the next stack to be viewed
@@ -56,10 +57,11 @@ def next_stack(zone: List[List[List[Tray]]],
 
     There's definitely a better way to do this...
     """
-    for row, trays in enumerate(zone[:-1]):
-        if trays[0] == stack[0]:
-            return zone[row + 1]
-    return None
+    try:
+        pos = zone.index(stack)
+    except ValueError:
+        return None
+    return zone[pos + 1] if pos == len(stack) - 1 else None
 
 
 def next_row(stack: List[List[Tray]], depth: int) -> int:
