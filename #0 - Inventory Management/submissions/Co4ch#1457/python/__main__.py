@@ -1,29 +1,34 @@
 from typing import List, Tuple, Dict
 from datetime import date
+from collections import namedtuple
+
+Tray = namedtuple('Tray', ['id', 'exp', 'count'])
 
 
 def select_zone(
                 zone_name: str,
-                zones: Dict[str, List[List[str]]] = {}
-               ) -> Union[List[List[str]], None]:
+                zones: Dict[str, List[List[List[Tray]]]] = {}
+               ) -> Union[List[List[List[Tray]]], None]:
     """Select an appropriate zone from the list of available zones
 
     Args:
         zone_name (str): The zone name we wish to search through
-        zones (Dict[str, List[List[str]]]): The zone names in the warehouse
+        zones (Dict[str, List[List[List[Tray]]]]): The zone names in the warehouse
     
     Return:
-        Union[List[List[str]], None]: The zone to be viewed,
+        Union[List[List[List[str]]], None]: The zone to be viewed,
                                       none if it does not exist
     """
     return zones.get(zone_name)
 
 
-def scanned_barcode(barcode: str) -> Tuple[str, date, int]:
+def scanned_barcode(barcode: str, stack: List[List[Tray]], depth: int) -> List[List[Tray]]:
     """Provided a scanned code, return the components of the code
 
     Args:
         barcode (str): The barcode of the scanned item
+        stack (List[List[Tray]]): The stack of boxes being viewed
+        depth (int): The row we are viewing
 
     Returns:
         str: The id of the item scanned
@@ -34,18 +39,20 @@ def scanned_barcode(barcode: str) -> Tuple[str, date, int]:
     exp = barcode[6:-2]
     last_day = date(exp[-2:], exp[2:-2], exp[:2])
     item_id = barcode[:6]
-    return (item_id, last_day, count)
+    t = Tray(item_id, last_day, count)
+    stack[depth].add(t)
+    return stack
 
-def next_stack(zone: List[List[str]],
-                stack: List[str]) -> Union[List[str], None]:
+def next_stack(zone: List[List[List[Tray]]],
+                stack: List[List[Tray]]) -> Union[List[List[Tray]], None]:
     """Looking at a current stack, provide the next stack to be viewed
 
     Args:
-        zone (List[List[str]]): The zone being searched through
-        stack (List[str]): The stack being viewed
+        zone (List[List[List[Tray]]]): The zone being searched through
+        stack (List[List[Tray]]): The stack being viewed
 
     Returns:
-        Union(List[str], None): The next stack to be viewed, None if the last row
+        Union(List[List[Tray]], None): The next stack to be viewed, None if the last row
 
     There's definitely a better way to do this...
     """
@@ -55,11 +62,11 @@ def next_stack(zone: List[List[str]],
     return None
 
 
-def next_row(stack: List[str], depth: int) -> int:
+def next_row(stack: List[List[Tray]], depth: int) -> int:
     """Provided a current position in a stack, move to the next location
 
     Args:
-        stack (List[str]): The current stack being viewed
+        stack (List[List[Tray]]): The current stack being viewed
         depth (int): The position in the stack currently being viewed
 
     Returns:
@@ -73,14 +80,14 @@ def next_row(stack: List[str], depth: int) -> int:
 def find_item(
               item_id: str, 
               zone_input: str,
-              warehouse: Dict[str, List[List[str]]]
+              warehouse: Dict[str, List[List[List[Tray]]]]
               ) -> Tuple[bool, Union[date, None], int]:
     """Provided an id for an item, find the item inside a provided zone
 
     Args:
         item_id (str): The id to find
         zone_input (str): The zone to search
-        warehouse (Dict[str, List[List[str]]]): The dict containing all zones
+        warehouse (Dict[str, List[List[List[Tray]]]]): The dict containing all zones
 
     Returns:
         bool: Whether the item exists
