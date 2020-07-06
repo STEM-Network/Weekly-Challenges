@@ -2,33 +2,41 @@ from typing import List, Tuple, Dict
 from datetime import date
 
 
-def select_zone(zones: List[str], zone_name: str) -> bool:
+def select_zone(
+                zone_name: str,
+                zones: Dict[str, List[List[str]]] = {}
+               ) -> Union[List[List[str]], None]:
     """Select an appropriate zone from the list of available zones
 
     Args:
-        zones (List[str]): The zones inside the store house
         zone_name (str): The zone name we wish to search through
+        zones (Dict[str, List[List[str]]]): The zone names in the warehouse
     
     Return:
-        int: The index of the requested zone (-1 if invalid)
+        Union[List[List[str]], None]: The zone to be viewed,
+                                      none if it does not exist
     """
-    return zone_name in zones
+    return zones.get(zone_name)
 
 
-def obtain_barcode(stack: List[str], depth: int) -> str:
-    """Provided a row and column for a tray, retrieve the barcode for the item
+def scanned_barcode(barcode: str) -> Tuple[str, date, int]:
+    """Provided a scanned code, return the components of the code
 
     Args:
-        stack (List[str]): The current stack being viewed
-        int (int): The column of a tray
+        barcode (str): The barcode of the scanned item
 
     Returns:
-        str: The barcode for a tray at the provided row and column
+        str: The id of the item scanned
+        date: The expiration date
+        int: The number of trays in the scanned item
     """
-    return stack[depth]
+    count = int(barcode[-2:])
+    exp = barcode[6:-2]
+    last_day = date(exp[-2:], exp[2:-2], exp[:2])
+    item_id = barcode[:6]
+    return (item_id, last_day, count)
 
-
-def move_stacks(zone: List[List[str]],
+def next_stack(zone: List[List[str]],
                 stack: List[str]) -> Union[List[str], None]:
     """Looking at a current stack, provide the next stack to be viewed
 
@@ -47,7 +55,7 @@ def move_stacks(zone: List[List[str]],
     return None
 
 
-def move_rows(stack: List[str], depth: int) -> int:
+def next_row(stack: List[str], depth: int) -> int:
     """Provided a current position in a stack, move to the next location
 
     Args:
@@ -64,13 +72,15 @@ def move_rows(stack: List[str], depth: int) -> int:
 
 def find_item(
               item_id: str, 
+              zone_input: str,
               warehouse: Dict[str, List[List[str]]]
               ) -> Tuple[bool, Union[date, None], int]:
     """Provided an id for an item, find the item inside a provided zone
 
     Args:
         item_id (str): The id to find
-        zone (List[List[str]]): The zone to search
+        zone_input (str): The zone to search
+        warehouse (Dict[str, List[List[str]]]): The dict containing all zones
 
     Returns:
         bool: Whether the item exists
@@ -79,8 +89,7 @@ def find_item(
 
     Would like to shorten this if possible.
     """
-    name = input('Select a zone to search')
-    if not select_zone(name) or len((zone := warehouse[name])[name]) == 0:
+    if not (zone := select_zone(zone_input, warehouse)) or len(zone) == 0:
         return (False, None, 0)
     current = zone[0]
     depth = 0
@@ -89,13 +98,11 @@ def find_item(
     found = False
     last_day = None
     while are_searching:
-        bc = obtain_barcode(current, depth)
-        if bc[:len(item_id)] == item_id:
+        bc = current[depth]
+        curr_id, d, count = scanned_barcode(current[depth])
+        if curr_id == item_id:
             are_searching = False
             found = True
-            count = bc[-2:]
-            exp = bc[len(item_id):-2]
-            last_day = date(exp[-2:], exp[2:-2], exp[:2])
             print(f'Found a matching item ID {item_id} for barcode {bc}. \
                     Number of items in the tray: {count} \
                     Expiration Date: {str(last_day)}')
@@ -103,35 +110,10 @@ def find_item(
                  of {len(current)}.')
         if depth + 1 == len(current):
             print('This is the last tray, viewing next stack')
-            current, depth = determine_movement(zone, current, depth, 's')
+            current, depth = next_stack, 0
         else:
-            current, depth = determine_movement(zone, current, depth)
+            depth = next_row(current, depth)
         if not current:  # if we just completed the last stack
                 print(f'Item id {item_id} not found in this zone')
+                are_searching = False
     return (found, last_day, count)
-
-
-def determine_movement(
-                       zone: List[List[str]],
-                       stack: List[str],
-                       depth: int,
-                       resp: str = None) -> Tuple[Union[List[str], None], int]:
-    """Determine whether the user wants to move to the next tray or stack
-
-    Args:
-        zone (List[List[str]]): The zone being viewed
-        stack (List[str]): The stack being viewed
-
-    Returns:
-        str: s or t for moving to the next stack or tray
-    """
-    while not resp or 's' not in resp or 't' not in resp:
-        resp = input('Would you like to move to the next (t)ray \
-                            or the next (s)tack? ').lower()
-        print('Invalid option, try again')
-    if 's' in resp:
-        c_stack = move_stacks(zone, stack)
-        return (c_stack, 0)
-    elif 't' in resp:
-        depth = move_rows(stack, depth)
-        return (stack, depth)
