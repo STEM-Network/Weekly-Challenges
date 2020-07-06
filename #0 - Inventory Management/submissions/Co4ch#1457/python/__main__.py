@@ -74,7 +74,7 @@ def next_row(stack: List[List[Tray]], depth: int) -> int:
     Returns:
         int: The position to be viewed next, -1 at the end of the stack
     """
-    if (next := depth + 1) >= len(stack):  # I am the walrus
+    if (next := depth + 1) >= len(stack):
         next = -1
     return next
 
@@ -83,46 +83,44 @@ def find_item(
               item_id: str, 
               zone_input: str,
               warehouse: Dict[str, List[List[List[Tray]]]]
-              ) -> Tuple[bool, Union[date, None], int]:
-    """Provided an id for an item, find the item inside a provided zone
+              ) -> Tuple[bool, List[Tray]]:
+    """
+    Provided an id for an item,
+    find the stack of trays inside a provided zone
 
     Args:
         item_id (str): The id to find
         zone_input (str): The zone to search
-        warehouse (Dict[str, List[List[List[Tray]]]]): The dict containing all zones
+        warehouse (Dict[str, List[List[List[Tray]]]]): All the zones
 
     Returns:
         bool: Whether the item exists
-        date: The expiration date, None if the item is invalid
-        int: How many items are in the tray
+        List[Tray]: The stack of trays the for the particular item
 
     Would like to shorten this if possible.
     """
     if not (zone := select_zone(zone_input, warehouse)) or len(zone) == 0:
-        return (False, None, 0)
+        return (False, None)
     current = zone[0]
     depth = 0
-    count = 0
     are_searching = True
     found = False
-    last_day = None
     while are_searching:
-        bc = current[depth]
-        curr_id, d, count = scanned_barcode(current[depth])
-        if curr_id == item_id:
-            are_searching = False
+        trays = current[depth]
+        bc = trays[0]
+        if bc.id == item_id:
             found = True
-            print(f'Found a matching item ID {item_id} for barcode {bc}. \
-                    Number of items in the tray: {count} \
-                    Expiration Date: {str(last_day)}')
-        print(f'{bc} is not a match. You are viewing tray {depth + 1} \
+            print(f'Found a matching item ID {item_id} for barcode {bc.id}. \
+                    Number of items in the tray: {bc.count} \
+                    Expiration Date: {str(bc.exp)}')
+            break
+        print(f'{bc.id} is not a match. You are viewing tray {depth + 1} \
                  of {len(current)}.')
-        if depth + 1 == len(current):
+        depth = next_row(current, depth)
+        if depth < 0:
             print('This is the last tray, viewing next stack')
             current, depth = next_stack, 0
-        else:
-            depth = next_row(current, depth)
         if not current:  # if we just completed the last stack
                 print(f'Item id {item_id} not found in this zone')
                 are_searching = False
-    return (found, last_day, count)
+    return (found, trays)
