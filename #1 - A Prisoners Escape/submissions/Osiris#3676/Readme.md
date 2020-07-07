@@ -1,0 +1,1 @@
+Part 1: Written in C++ and compiled with MinGW. Only tested for 8x8 boards.
