@@ -45,4 +45,4 @@ The obvious simplest cases (1x1, 1x2 and 2x2) all work.
 
 Extra challenge: prove the above "this works for: " statement. (doesn't have to be a formal proof)
 
-This describes part 1 of this challenge, see [Part 2]() for the steganography section
+This describes part 1 of this challenge, see [Part 2](https://github.com/NCEES-discord/Weekly-Challenges/blob/master/%231%20-%20A%20Prisoners%20Escape/Part2.md) for the steganography section
