@@ -1,1 +1,1 @@
-Part 1: Written in C++ and compiled with MinGW. Only tested for 8x8 boards.
+Part 1: Written in C++. Compiled with MinGW and executed in a console window. This version is quite verbose and requires input from the user.
