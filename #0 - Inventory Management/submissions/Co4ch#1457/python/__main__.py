@@ -37,7 +37,7 @@ def scanned_barcode(barcode: str, stack: List[List[Tray]], depth: int) -> List[L
     """
     count = int(barcode[-2:])
     exp = barcode[6:-2]
-    last_day = date(exp[-2:], exp[2:-2], exp[:2])
+    last_day = date(int(exp[-2:]), int(exp[2:-2]), int(exp[:2]))
     item_id = barcode[:6]
     t = Tray(item_id, last_day, count)
     stack[depth].add(t)
