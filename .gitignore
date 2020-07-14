@@ -1,4 +1,5 @@
 # Ignore challenge problem generation code
 # (Azur's Eyes Only :p)
-*/generation
-.vscode
+*/generation/
+.vscode/
+ideas/
