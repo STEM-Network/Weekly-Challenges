@@ -7,14 +7,14 @@ module.exports = {
 }
 
 const data = {
-    zones: {    //Expectes: {ZoneName: Row[Stack[barcode[]]]}
+    zones: {    //Expects: {ZoneName: Row[Stack[barcode[]]]}
         default:[[[]]]
     },  
     currentPosition:{
         zone    : "default",
         row     : 0,
         stack   : 0,
-        height  : 0
+        height  : -1
     }
 }
 
